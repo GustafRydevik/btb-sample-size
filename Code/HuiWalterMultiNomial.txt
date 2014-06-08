@@ -1,0 +1,29 @@
+model{
+
+OA~dmulti(PA,N.A)
+OB~dmulti(PB,N.B)
+
+PA[4]<-Se1*Se2*PrA+(1-Sp1)*(1-Sp2)*(1-PrA) ##++
+PA[3]<-Se1*(1-Se2)*PrA+(1-Sp1)*Sp2*(1-PrA) ##+-
+PA[2]<-(1-Se1)*Se2*PrA+Sp1*(1-Sp2)*(1-PrA) ##-+
+PA[1]<-(1-Se1)*(1-Se2)*PrA+Sp1*Sp2*(1-PrA) ##--
+
+PB[4]<-Se1*Se2*PrB+(1-Sp1)*(1-Sp2)*(1-PrB) ##++
+PB[3]<-Se1*(1-Se2)*PrB+(1-Sp1)*Sp2*(1-PrB) ##+-
+PB[2]<-(1-Se1)*Se2*PrB+Sp1*(1-Sp2)*(1-PrB) ##-+
+PB[1]<-(1-Se1)*(1-Se2)*PrB+Sp1*Sp2*(1-PrB) ##--
+
+
+PrA<-min(PP1,PP2)
+PrB<-max(PP1,PP2)
+PP1~dbeta(1,1)
+PP2~dbeta(1,1)
+
+Se1~dbeta(1,1)
+Se2~dbeta(1,1)
+
+Sp1~dbeta(1,1)
+Sp2~dbeta(1,1)
+
+}
+
