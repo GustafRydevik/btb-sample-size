@@ -1,0 +1,43 @@
+model{
+
+
+
+
+for(pop in 1:2){
+for(vaccine in 1:2){ ### 2== Not vaccinated, 1 ==Vaccinated
+
+probResult[pop,vaccine,4]<-SeT1[vaccine]*SeT2[vaccine]*Prevalence[Pop]+
+  (1-SpT1[vaccine])*(1-SpT2[vaccine])*(1-Prevalence[Pop]) ##++
+
+probResult[pop,vaccine,3]<-SeT1[vaccine]*(1-SeT2[vaccine])*Prevalence[Pop]+
+  (1-SpT1[vaccine])*SpT2[vaccine]*(1-Prevalence[Pop]) ##+-
+
+probResult[pop,vaccine,2]<-(1-SeT1[vaccine])*SeT2[vaccine]*Prevalence[Pop]+
+  SpT1[vaccine]*(1-SpT2[vaccine])*(1-Prevalence[Pop]) ##-+
+
+probResult[pop,vaccine,1]<-(1-SeT1[vaccine])*(1-SeT2[vaccine])*Prevalence[Pop]+
+  SpT1[vaccine]*SpT2[vaccine]*(1-Prevalence[Pop]) ##--
+
+counts[Pop,vaccine]~dmulti(probResult[pop,vaccine],nCattle[pop])
+}
+}
+
+
+for(Pop in 1:2){
+  
+}
+
+
+Prevalence<-sort(Prev.temp)
+
+Prev.temp[1]~dbeta(1,1)
+Prev.temp[2]~dbeta(1,1)
+
+for(vaccine in 1:2){
+SpT1[vaccine]~dbeta(1,1)
+SeT2[vaccine]~dbeta(1,1)
+
+SpT1[vaccine]~dbeta(1,1)
+SpT2[vaccine]~dbeta(1,1)
+}
+
