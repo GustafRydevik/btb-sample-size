@@ -63,29 +63,3 @@ SpViva<-c(Vacc=0.999,nonVacc=0.999))
 
 
 print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
-
-
-#something wrong in the model assumption here...
-
-
-temp2<-jags.model("HuiWalterMultiNomial.txt",data=list(
-  OA=c(with(subset(btb.testdata,Pop=="A"),table(t1,t2))),
-                                            OB=c(with(subset(btb.testdata,Pop=="B"),table(t1,t2))),
-                                            N.A=SizeA,
-                                            N.B=SizeB),n.chains=5)
-  update(temp2,10000)
-  tmp2.samples<-coda.samples(temp2,c("Se1","Se2","Sp1","Sp2","PrA","PrB"),2000)
-
-
-
-formula = result~Pop+Pop:test
-result=inla(formula,data=btb.testdata.agg,
-            familbtb.testdata="binomial",
-            Ntrials=Pop.size,
-            control.predictor=list(compute=T),
-            control.compute=list(dic=T))
-
-
-
-
-formula
