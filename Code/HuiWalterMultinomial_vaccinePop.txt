@@ -3,18 +3,17 @@ model{
   for(Pop in 1:2){
     for(vaccine in 1:2){ ### 2== Not vaccinated, 1 ==Vaccinated
       
-      
-      probResult[Pop,vaccine,1]<-(1-SeStd[vaccine])*(1-SeViva[vaccine])*Prevalence[Pop]+
+      probResult[Pop,vaccine,1]<-(1-SeStd[vaccine])*(1-SeViva[vaccine])*Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))+
         SpStd[vaccine]*SpViva[vaccine]*(1-Prevalence[Pop]) ##--
       
-      probResult[Pop,vaccine,2]<-SeStd[vaccine]*(1-SeViva[vaccine])*Prevalence[Pop]+
-        (1-SpStd[vaccine])*SpViva[vaccine]*(1-Prevalence[Pop]) ##+-
+      probResult[Pop,vaccine,2]<-SeStd[vaccine]*(1-SeViva[vaccine])*Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))+
+        (1-SpStd[vaccine])*SpViva[vaccine]*(1-Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))) ##+-
       
-      probResult[Pop,vaccine,3]<-(1-SeStd[vaccine])*SeViva[vaccine]*Prevalence[Pop]+
-        SpStd[vaccine]*(1-SpViva[vaccine])*(1-Prevalence[Pop]) ##-+
+      probResult[Pop,vaccine,3]<-(1-SeStd[vaccine])*SeViva[vaccine]*Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))+
+        SpStd[vaccine]*(1-SpViva[vaccine])*(1-Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))) ##-+
       
-      probResult[Pop,vaccine,4]<-SeStd[vaccine]*SeViva[vaccine]*Prevalence[Pop]+
-        (1-SpStd[vaccine])*(1-SpViva[vaccine])*(1-Prevalence[Pop]) ##++
+      probResult[Pop,vaccine,4]<-SeStd[vaccine]*SeViva[vaccine]*Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))+
+        (1-SpStd[vaccine])*(1-SpViva[vaccine])*(1-Prevalence[Pop]*v.efficacy/(v.efficacy+(1-v.efficacy)*(2-vaccine))) ##++
       
       
       counts[Pop,vaccine,1:4]~dmulti(probResult[Pop,vaccine,1:4],nCattle[Pop,vaccine])
@@ -28,6 +27,7 @@ model{
   
   Prev.temp[1]~dunif(0,0.2)
   Prev.temp[2]~dunif(0,0.2)
+  v.efficacy~dunif(0,1)
   
   for(vaccine in 1:2){
     SeStd[vaccine]~dunif(0.5,1)

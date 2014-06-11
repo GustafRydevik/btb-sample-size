@@ -5,21 +5,26 @@ library(INLA)
 
 SeStd<-c(Vacc=0.7,nonVacc=0.7)
 SeViva<-c(Vacc=0.7,nonVacc=0.7)
-SpStd<-c(Vacc=0.55,nonVacc=0.997)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
+SpStd<-c(Vacc=0.999,nonVacc=0.999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
 SpViva<-c(Vacc=0.999,nonVacc=0.999)
+vaccine.efficacy<-0.6
 
-Prevalence<-c(High=5/100,Low=2/100)
+Prevalence<-c(High=6/100,Low=1/100)
 nCattle<-matrix(c(nHigh.vacc=7500,nLow.vacc=7500,nHigh.nonvacc=7500,nLow.nonvacc=7500),ncol=2)
 propVaccinated<-1/2
 btb.testdata<-data.frame(Pop=c(rep("High",sum(nCattle[1:2])),rep("Low",sum(nCattle[1:2]))))
-btb.testdata$Case[btb.testdata$Pop=="High"]<-rbinom(nCattle[1],1,p=Prevalence[1])
-btb.testdata$Case[btb.testdata$Pop=="Low"]<-rbinom(nCattle[2],1,p=Prevalence[2])
+
 btb.testdata$Vaccinated<-c(rep("Vacc",nCattle[1]),
                 rep("nonVacc",nCattle[2]),    
                 rep("Vacc",nCattle[3]),
                 rep("nonVacc",nCattle[4])
 )
-btb.testdata$Vaccinated<-factor(btb.testdata$Vaccinated,levels=c("Vacc","nonVacc"))            
+btb.testdata$Vaccinated<-factor(btb.testdata$Vaccinated,levels=c("Vacc","nonVacc"))
+
+btb.testdata$Case[btb.testdata$Pop=="High"&btb.testdata$Vaccinated=="Vacc"]<-rbinom(nCattle[1],1,p=Prevalence[1]*vaccine.efficacy)
+btb.testdata$Case[btb.testdata$Pop=="Low"&btb.testdata$Vaccinated=="Vacc"]<-rbinom(nCattle[2],1,p=Prevalence[2]*vaccine.efficacy)
+btb.testdata$Case[btb.testdata$Pop=="High"&btb.testdata$Vaccinated=="nonVacc"]<-rbinom(nCattle[3],1,p=Prevalence[1])
+btb.testdata$Case[btb.testdata$Pop=="Low"&btb.testdata$Vaccinated=="nonVacc"]<-rbinom(nCattle[4],1,p=Prevalence[2])
 
   for(vacc.status in c("Vacc","nonVacc")){
     SubsetPos<-with(btb.testdata,Case==1&Vaccinated==vacc.status)
@@ -46,7 +51,7 @@ temp<-jags.model("./Code/HuiWalterMultinomial_vaccinePop.txt",data=list(counts=b
                                      n.chains=5)
 
 update(temp,10000)
-tmp.samples<-coda.samples(temp,c("SeStd","SeViva","SpStd","SpViva","Prevalence","probResult"),5000)
+tmp.samples<-coda.samples(temp,c("SeStd","SeViva","SpStd","SpViva","Prevalence","probResult","v.efficacy"),5000)
 tmp2<-do.call("rbind",tmp.samples)
 class(tmp2)<-"mcmc"
 posterior.intervals<-HPDinterval(tmp2)[1:10,]
@@ -61,31 +66,5 @@ SeViva<-c(Vacc=0.7,nonVacc=0.7),
 SpStd<-c(Vacc=0.55,nonVacc=0.997),  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
 SpViva<-c(Vacc=0.999,nonVacc=0.999))
 
-
+library(xtable)
 print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
-
-
-#something wrong in the model assumption here...
-
-
-temp2<-jags.model("HuiWalterMultiNomial.txt",data=list(
-  OA=c(with(subset(btb.testdata,Pop=="A"),table(t1,t2))),
-                                            OB=c(with(subset(btb.testdata,Pop=="B"),table(t1,t2))),
-                                            N.A=SizeA,
-                                            N.B=SizeB),n.chains=5)
-  update(temp2,10000)
-  tmp2.samples<-coda.samples(temp2,c("Se1","Se2","Sp1","Sp2","PrA","PrB"),2000)
-
-
-
-formula = result~Pop+Pop:test
-result=inla(formula,data=btb.testdata.agg,
-            familbtb.testdata="binomial",
-            Ntrials=Pop.size,
-            control.predictor=list(compute=T),
-            control.compute=list(dic=T))
-
-
-
-
-formula
