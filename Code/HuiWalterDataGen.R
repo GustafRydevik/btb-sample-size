@@ -1,17 +1,69 @@
-library(INLA)
 
+#Code for testing HuiWalter estimation on generated data.
 
-#generate some data for a hui walter paradigm
+library(batch)
+library(rjags)
+library(xtable)
+library(stringr)
+#Global parameters
+got.mdrive<-length(dir("M:"))>0
+is.win<-grepl("w32",R.Version()$platform)
+is.girion<-sum(grep("girion",system("hostname",intern=TRUE)))
+dropbox.sac<-"C:/Documents and Settings/GRydevik/My Documents/Dropbox"
 
+dropbox.bioss<-"D:\\Dropbox"
+dropbox.osx<-"/Users/gustafrydevik/Dropbox"
+girion.path<-"/home/gustaf"
+#Giles.path<-..... ##Add your 
+dropbox.path<-c(dropbox.osx,dropbox.sac,dropbox.bioss)[got.mdrive+is.win+1]
+
+main.path<-if(is.girion){girion.path}else{file.path(dropbox.path,"PhD folder")}
+
+##Project specific parameters
+project.path<-file.path(main.path,"btb-sample-size")
+
+data.dir<-file.path(project.path,"Data")
+script.dir<-file.path(project.path,"Code")
+output.dir<-file.path(project.path,"Output")
+sim.dir<-file.path(project.path,"simulation-output")
+
+###Parameters for the run
+#Pars for jags
+nreps<-1
+rep.prefix=0
+nchains<-5
+niter<-1000
+n.mcmc.samples<-1000
+save.samples=T
+
+##Pars for the scenario
+scenario.name<-"baseline"
 SeStd<-c(Vacc=0.7,nonVacc=0.7)
 SeViva<-c(Vacc=0.7,nonVacc=0.7)
 SpStd<-c(Vacc=0.999,nonVacc=0.999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
 SpViva<-c(Vacc=0.999,nonVacc=0.999)
 vaccine.efficacy<-0.6
-
 Prevalence<-c(High=6/100,Low=1/100)
-nCattle<-matrix(c(nHigh.vacc=7500,nLow.vacc=7500,nHigh.nonvacc=7500,nLow.nonvacc=7500),ncol=2)
-propVaccinated<-1/2
+samplesize<-30000
+props<-c(1/4,1/4,1/4,1/4)# balance between populations High/vacc,Low/vacc,High/nonvacc,low/nonvacc
+seed<-1000
+
+##Or read in parameters from a batch call
+parseCommandArgs()
+
+names(SeStd)<-c("Vacc","nonVacc")
+names(SeViva)<-c("Vacc","nonVacc")
+names(SpStd)<-c("Vacc","nonVacc")
+names(SpViva)<-c("Vacc","nonVacc")
+names(Prevalence)<-c("High","Low")
+
+set.seed(seed)
+
+#Set up the data objects
+nCattle<-matrix(c(nHigh.vacc=round(samplesize*props[1]),
+                  nLow.vacc=round(samplesize*props[2]),
+                  nHigh.nonvacc=round(samplesize*props[3]),
+                  nLow.nonvacc=round(samplesize*props[4])),ncol=2)
 btb.testdata<-data.frame(Pop=c(rep("High",sum(nCattle[1:2])),rep("Low",sum(nCattle[1:2]))))
 
 btb.testdata$Vaccinated<-c(rep("Vacc",nCattle[1]),
@@ -21,6 +73,13 @@ btb.testdata$Vaccinated<-c(rep("Vacc",nCattle[1]),
 )
 btb.testdata$Vaccinated<-factor(btb.testdata$Vaccinated,levels=c("Vacc","nonVacc"))
 
+
+#Now run the following $reps times to generate multiple estimates
+
+set.seed(seed)
+for(i in 1:nreps){
+  
+#simulate some data
 btb.testdata$Case[btb.testdata$Pop=="High"&btb.testdata$Vaccinated=="Vacc"]<-rbinom(nCattle[1],1,p=Prevalence[1]*vaccine.efficacy)
 btb.testdata$Case[btb.testdata$Pop=="Low"&btb.testdata$Vaccinated=="Vacc"]<-rbinom(nCattle[2],1,p=Prevalence[2]*vaccine.efficacy)
 btb.testdata$Case[btb.testdata$Pop=="High"&btb.testdata$Vaccinated=="nonVacc"]<-rbinom(nCattle[3],1,p=Prevalence[1])
@@ -44,27 +103,60 @@ btb.dimnames<-c(dimnames(btb.testdata.agg)[1:2],Std.vs.Viva=list(c("--","+-","-+
 dim(btb.testdata.agg)<-c(2,2,4)
 dimnames(btb.testdata.agg)<-btb.dimnames
 class(btb.testdata.agg)<-"array"
-library(rjags)
 
-temp<-jags.model("./Code/HuiWalterMultinomial_vaccinePop.txt",data=list(counts=btb.testdata.agg,
+huiwalter.jags<-jags.model("./Code/HuiWalterMultinomial_vaccinePop.txt",data=list(counts=btb.testdata.agg,
                                      nCattle=nCattle),
-                                     n.chains=5)
+                                     n.chains=nchains)
 
-update(temp,10000)
-tmp.samples<-coda.samples(temp,c("SeStd","SeViva","SpStd","SpViva","Prevalence","probResult","v.efficacy"),5000)
-tmp2<-do.call("rbind",tmp.samples)
-class(tmp2)<-"mcmc"
-posterior.intervals<-HPDinterval(tmp2)[1:10,]
+update(huiwalter.jags,niter)
+huiwalter.samples<-coda.samples(huiwalter.jags,c("SeStd","SeViva","SpStd","SpViva","Prevalence","probResult","v.efficacy"),n.mcmc.samples)
+huiwalter.allchains<-do.call("rbind",huiwalter.samples)
+class(huiwalter.allchains)<-"mcmc"
+
+
+###Generate posterior estimates
+posterior.intervals<-HPDinterval(as.mcmc(huiwalter.allchains[1:nrow(huiwalter.allchains),
+                                                     which(str_detect(colnames(huiwalter.allchains),
+                                                                      c("SeStd|SeViva|SpStd|SpViva|Prevalence|v.efficacy")))]))
+posterior.intervals<-data.frame(posterior.intervals)
+posterior.intervals$median<-sapply(data.frame(huiwalter.allchains[1:nrow(huiwalter.allchains),
+                                                       which(str_detect(colnames(huiwalter.allchains),
+                                                                        c("SeStd|SeViva|SpStd|SpViva|Prevalence|v.efficacy")))]
+                                              ),
+                                   median)
+posterior.intervals$mean<-sapply(data.frame(huiwalter.allchains[1:nrow(huiwalter.allchains),
+                                                     which(str_detect(colnames(huiwalter.allchains),
+                                                                      c("SeStd|SeViva|SpStd|SpViva|Prevalence|v.efficacy")))]
+                                 ),
+                                 mean)
 rownames(posterior.intervals)<-gsub("\\[1\\]"," vaccine pop",rownames(posterior.intervals))
 rownames(posterior.intervals)<-gsub("\\[2\\]"," nonvaccine pop",rownames(posterior.intervals))
 rownames(posterior.intervals)[1:2]<-c("High prevalence pop","Low prevalence pop")
-posterior.intervals<-data.frame(posterior.intervals)
+posterior.intervals<-data.frame(variable=rownames(posterior.intervals),posterior.intervals)
 posterior.intervals[,"True.value"]<-c(
-  Prevalence<-c(High=5/100,Low=2/100),
-  SeStd<-c(Vacc=0.7,nonVacc=0.7),
-SeViva<-c(Vacc=0.7,nonVacc=0.7),
-SpStd<-c(Vacc=0.55,nonVacc=0.997),  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
-SpViva<-c(Vacc=0.999,nonVacc=0.999))
+  Prevalence,
+  SeStd,
+  SeViva,
+  SpStd,  
+  SpViva,
+  vaccine.efficacy)
 
-library(xtable)
-print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
+#print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
+
+if(save.samples){jags.results[["jags.samples"]]<-huiwalter.samples
+save(huiwalter.samples,file=paste(
+  sim.dir,"/HuiWalterSampleSize",
+  "_seed_",seed,
+  "_scenario_",scenario.name,
+  "_samplesize",samplesize,
+  "_",rep.prefix,i,
+  ".RData",sep=""))
+}
+write.table(posterior.intervals,file=paste(
+  sim.dir,"/HuiWalterCI",
+  "_seed_",seed,
+  "_scenario_",scenario.name,
+  "_samplesize",samplesize,
+  "_",rep.prefix,i,
+  ".csv",sep=""))
+}
