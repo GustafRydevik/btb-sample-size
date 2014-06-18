@@ -160,4 +160,3 @@ write.table(posterior.intervals,file=paste(
   "_",rep.prefix,i,
   ".csv",sep=""))
 }
->>>>>>> ad08b7af67d33ff44672afa18e18cf3fa70d78f2
