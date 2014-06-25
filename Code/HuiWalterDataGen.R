@@ -40,13 +40,13 @@ save.samples=T
 scenario.name<-"baseline"
 SeStd<-c(Vacc=0.7,nonVacc=0.7)
 SeDIVA<-c(Vacc=0.7,nonVacc=0.7)
-SpStd<-c(Vacc=0.999,nonVacc=0.999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
-SpDIVA<-c(Vacc=0.999,nonVacc=0.999)
+SpStd<-c(Vacc=0.9999,nonVacc=0.9999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
+SpDIVA<-c(Vacc=0.9999,nonVacc=0.9999)
 vaccine.efficacy<-0.6
 Prevalence<-c(High=6/100,Low=1/100)
 samplesize<-50000
 props<-c(1/4,1/4,1/4,1/4)# balance between populations High/vacc,Low/vacc,High/nonvacc,low/nonvacc
-gold.scale<-1
+gold.scale<-10
 npos.gold<-300*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 nneg.gold<-1000*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 
@@ -121,7 +121,7 @@ for(i in 1:nreps){
   SpStd.gold<-c(Vacc=rbinom(1,size=nneg.gold["Vacc"],prob=SpStd["Vacc"]),
                 nonVacc=rbinom(1,size=nneg.gold["nonVacc"],prob=SpStd["nonVacc"]))
   
-  huiwalter.jags<-jags.model("./Code/HuiWalterMultinomial_vaccinePop.txt",
+  huiwalter.jags<-jags.model(file.path(script.dir,"HuiWalterMultinomial_vaccinePop.txt"),
                              data=list(
                                counts=btb.testdata.agg,
                                nCattle=nCattle,
@@ -193,3 +193,4 @@ for(i in 1:nreps){
     "_",rep.prefix,i,
     ".csv",sep=""))
 }
+

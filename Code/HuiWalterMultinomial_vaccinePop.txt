@@ -29,19 +29,10 @@ model{
   v.efficacy~dunif(0,1)
   
   for(vaccine in 1:2){
-    SeStd.phat[vaccine]<-min(SeStd.gold[vaccine]/npos.gold[vaccine],1-1/(2*npos.gold))
-    SpStd.phat[vaccine]<-min(SpStd.gold[vaccine]/nneg.gold[vaccine],1-1/(2*nneg.gold))
-    SeDIVA.phat[vaccine]<-min(SeDIVA.gold[vaccine]/npos.gold[vaccine],1-1/(2*npos.gold))
-    SpDIVA.phat[vaccine]<-min(SpDIVA.gold[vaccine]/nneg.gold[vaccine],1-1/(2*nneg.gold))
-    
-    SeStd[vaccine]~dnorm(SeStd.phat[vaccine],
-                         sqrt(( SeStd.phat[vaccine]*(1- SeStd.phat[vaccine]))/npos.gold[vaccine]))
-    SeDIVA[vaccine]~dnorm(SeDIVA.phat[vaccine],
-                          sqrt((SeDIVA.phat[vaccine]*(1-SeDIVA.phat[vaccine]))/npos.gold[vaccine]))
-    
-    SpStd[vaccine]~dnorm(SpStd.phat[vaccine],
-                         sqrt(( SpStd.phat[vaccine]*(1- SpStd.phat[vaccine]))/nneg.gold[vaccine]))
-    SpDIVA[vaccine]~dnorm(SpDIVA.phat[vaccine],
-                          sqrt((SpDIVA.phat[vaccine]*(1-SpDIVA.phat[vaccine]))/nneg.gold[vaccine]))  
+
+    SeStd[vaccine]~dbeta(SeStd.gold[vaccine]+1,npos.gold[vaccine]-SeStd.gold[vaccine]+1)
+    SeDIVA[vaccine]~dbeta(SeDIVA.gold[vaccine]+1,npos.gold[vaccine]-SeDIVA.gold[vaccine]+1)
+    SpStd[vaccine]~dbeta(SpStd.gold[vaccine]+1,nneg.gold[vaccine]-SpStd.gold[vaccine]+1)
+    SpDIVA[vaccine]~dbeta(SpDIVA.gold[vaccine]+1,nneg.gold[vaccine]-SpDIVA.gold[vaccine]+1)
   }
 }
