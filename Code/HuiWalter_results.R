@@ -41,17 +41,74 @@ hw.results.df$gold.standard<-as.factor(paste(rep(str_extract(grep(session.id,dir
                                               times=sapply(hw.results.list,nrow)),
                                               rep(str_extract(grep(session.id,dir(sim.dir),value=T),"nnegGold([[:digit:]]+)"),
                                                   times=sapply(hw.results.list,nrow)),sep=";"))
-
+levels(hw.results.df$scenario)<-c("70%se, 99.90%sp","85%se, 99.90%sp","70%se, 99.99%sp","50%se, 99.90%sp","70%se, 99.87%sp","50%se, 99.87%sp","85%se, 99.99%sp")
+hw.results.df$scenario<-factor(hw.results.df$scenario,levels(hw.results.df$scenario)[c(1,4,5,6,2,3,7)])
 levels(hw.results.df$gold.standard)<-c("300+/1000- GS tests","600+/2000- GS tests","900+/3000- GS tests")
 
 
 hw.results.q20<-aggregate(hw.results.df[,2],by=hw.results.df[,c("scenario","vaccine.efficacy","gold.standard","samplesize","variable")],quantile,0.2)
 hw.results.q20.SPDIVA<-subset(hw.results.q20,variable=="SpDIVA vaccine pop")
 hw.results.q20.SPDIVA$success<-with(hw.results.q20.SPDIVA,ave(x,scenario,gold.standard,vaccine.efficacy,FUN=function(x)any(x>0.9985)))
-hw.results.q20.SPDIVA$samplesize<-str_replace(sprintf("%d",hw.results.q20.SPDIVA$samplesize),"([[:digit:]]{3}$)"," \\1")
-hw.results.q20.SPDIVA$samplesize<-factor(as.character(hw.results.q20.SPDIVA$samplesize),levels=unique(hw.results.q20.SPDIVA$samplesize))
+hw.results.q20.SPDIVA$samplesize<-factor(str_replace(sprintf("%d",hw.results.q20.SPDIVA$samplesize),"([[:digit:]]{3}$)","k"))
+hw.results.q20.SPDIVA$samplesize<-factor(hw.results.q20.SPDIVA$samplesize,levels(hw.results.q20.SPDIVA$samplesize)[c(2,4,1,3)])
+
+#hw.results.q20.SPDIVA$samplesize<-str_replace(sprintf("%d",hw.results.q20.SPDIVA$samplesize),"([[:digit:]]{3}$)"," \\1")
+#hw.results.q20.SPDIVA$samplesize<-factor(as.character(hw.results.q20.SPDIVA$samplesize),levels=unique(hw.results.q20.SPDIVA$samplesize))
+
+my.theme<-theme_minimal()+theme(text=element_text(size=20))
 ggplot(subset(hw.results.q20.SPDIVA),aes(x=samplesize,y=x,group=vaccine.efficacy,col=vaccine.efficacy))+
-  geom_smooth()+facet_grid(scenario~gold.standard)+
+  geom_smooth(size=1.2)+facet_grid(gold.standard~scenario)+
   geom_hline(yintercept=0.9985)+
-  scale_y_continuous(labels = percent_format())
+  scale_y_continuous(labels = percent_format())+my.theme
+
+
+
+
+#### Sensitivity run
+session.id<-"2014062514"
+file.names.full<-grep(session.id,dir(sim.dir,full.names=T),value=T)
+sp.results.list<-lapply(grep(session.id,dir(sim.dir,full.names=T),value=T),read.table,header=T)
+
+par.samplesize<-sprintf("%d",
+        as.numeric(str_replace(str_extract(grep(session.id,dir(sim.dir),value=T),
+                                           "samplesize([[:digit:]]+)"),"samplesize",""
+                               )
+        ))
+
+par.sp<-as.numeric(
+  str_replace(str_extract(
+    grep(session.id,dir(sim.dir),value=T),"sp0\\.([[:digit:]]+)"),"sp","")
+)
+
+
+par.gs<-as.factor(paste(str_extract(grep(session.id,dir(sim.dir),value=T),"nposGold([[:digit:]]+)"),
+                str_extract(grep(session.id,dir(sim.dir),value=T),"nnegGold([[:digit:]]+)"),
+                    sep=";")
+          )
+
+levels(par.gs)<-c("1500+/5000- GS tests","30+/100- GS tests","300+/1000- GS tests")
+
+sp.results.list<-lapply(1:length(sp.results.list),function(x){
+  data.frame(sp.results.list[[x]],
+             samplesize=par.samplesize[x],
+             gold.standard=par.gs[x],
+             sp=par.sp[x])
+})
+
+sp.results.df<-do.call("rbind",sp.results.list)
+
+##adding run variables
+
+sp.results.q20<-aggregate(sp.results.df[,2],by=sp.results.df[,c("sp","gold.standard","samplesize","variable")],quantile,0.2)
+sp.results.q20$samplesize<-as.numeric(as.character(sp.results.q20$samplesize))
+#sp.results.q20$samplesize<-factor(str_replace(as.character(sp.results.q20$samplesize),"([[:digit:]]{3}$)","k"))
+#sp.results.q20$samplesize<-factor(sp.results.q20$samplesize,levels(sp.results.q20$samplesize)[c(2:8,1)])
+
+
+my.theme<-theme_minimal()+theme(text=element_text(size=20))
+ggplot(subset(sp.results.q20,variable=="SpDIVA vaccine pop"),aes(x=samplesize,y=x,group=vaccine.efficacy))+
+  geom_smooth(size=1.5)+facet_grid(gold.standard~sp)+
+  geom_hline(yintercept=0.9985)+
+  scale_y_continuous(labels = percent_format())+my.theme
+
 

@@ -47,7 +47,7 @@ vacc.eff.range<-c(0.3,0.6,0.75)
 gold.scale.range<-c(1/10,1,5)
 current.seed<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 sp.range<-seq(0.999,0.9999,by=0.0001)
-for(rep in 0:9){
+for(rep in 0:4){
   for(simvars in sim.scenarios){
     for(SP in sp.range){
       for(gold.scale in gold.scale.range){

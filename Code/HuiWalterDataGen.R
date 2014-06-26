@@ -165,6 +165,9 @@ for(i in 1:nreps){
     SpStd,  
     SpDIVA,
     vaccine.efficacy)
+  posterior.intervals$samplesize<-samplesize
+  posterior.intervals$spDIVA.vacc<-SpDIVA[1]
+  posterior.intervals$gold.standard<-paste(sum(npos.gold),"+/",sum(nneg.gold),"-",collapse="",sep="")
   
   #print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
   
