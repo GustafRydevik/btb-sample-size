@@ -50,7 +50,7 @@ gold.scale<-10
 npos.gold<-300*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 nneg.gold<-1000*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 
-
+time<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 seed<-1000
 
 ##Or read in parameters from a batch call
@@ -174,7 +174,7 @@ for(i in 1:nreps){
   if(save.samples){jags.results[["jags.samples"]]<-huiwalter.samples
                    save(huiwalter.samples,file=paste(
                      sim.dir,"/HuiWalterSampleSize",
-                     "_seed_",seed,
+                     "_time_",time,
                      "_sp",SpDIVA[1],
                      "_se",SeDIVA[1],
                      "_samplesize",sprintf("%d",samplesize),
@@ -186,7 +186,7 @@ for(i in 1:nreps){
   }
   write.table(posterior.intervals,file=paste(
     sim.dir,"/HuiWalterCI",
-    "_seed_",seed,
+    "_time_",time,
     "_sp",SpDIVA[1],
     "_se",SeDIVA[1],
     "_samplesize",sprintf("%d",samplesize),

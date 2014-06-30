@@ -55,6 +55,34 @@ hw.results.q20.SPDIVA$samplesize<-factor(hw.results.q20.SPDIVA$samplesize,levels
 #hw.results.q20.SPDIVA$samplesize<-str_replace(sprintf("%d",hw.results.q20.SPDIVA$samplesize),"([[:digit:]]{3}$)"," \\1")
 #hw.results.q20.SPDIVA$samplesize<-factor(as.character(hw.results.q20.SPDIVA$samplesize),levels=unique(hw.results.q20.SPDIVA$samplesize))
 
+
+library(plyr)
+hw.results.df$sp<-str_extract(as.character(hw.results.df$scenario),"[[:digit:]]+\\.[[:digit:]]+\\%sp")
+hw.results.df$se<-str_extract(as.character(hw.results.df$scenario),"[[:digit:]]+\\.?[[:digit:]]*\\%se")
+
+hw.results.plyr<-ddply(hw.results.df,.(se,sp,vaccine.efficacy,gold.standard,samplesize,variable),.fun=function(x)c(lower.ci.ave=mean(x$lower),upper.ci.ave=mean(x$upper)))
+hw.results.plyr.70se<-subset(hw.results.plyr,se=="70%se"&variable=="SpDIVA vaccine pop"&sp!="99.87%sp")
+hw.table.ci<-hw.results.plyr.70se[,-c(1,6)]
+hw.table.ci$lower.ci.ave<-round(hw.table.ci$lower.ci.ave*100,3)
+hw.table.ci$upper.ci.ave<-pmin(round(hw.table.ci$upper.ci.ave*100,3),100)
+hw.table.ci<-hw.table.ci[order(hw.table.ci$samplesize,hw.table.ci$sp,hw.table.ci$gold.standard,hw.table.ci$vaccine.efficacy),]
+hw.table.ci$ci.width<-hw.table.ci$upper.ci.ave-hw.table.ci$lower.ci.ave
+hw.table.ci$Diff.99.85<-ifelse(hw.table.ci$lower.ci.ave>=99.85,"*","")
+hw.table.ci$samplesize<-str_replace(sprintf("%d",hw.table.ci$samplesize),"000$"," 000")
+hw.table.ci$sp<-str_replace(hw.table.ci$sp,"sp","")
+names(hw.table.ci)[1]<-"True SP"
+names(hw.table.ci)[8]<-"Significantly>99.85%?"
+
+print(xtable(hw.table.ci[,c("samplesize",
+               "True SP",
+               "gold.standard",
+               "vaccine.efficacy",
+               "lower.ci.ave","upper.ci.ave","ci.width","Significantly>99.85%?")],digits=3),
+      ,type="html",
+      file=file.path(output.dir,"SampleSize_table.html"),
+      include.rownames=FALSE)
+
+
 my.theme<-theme_minimal()+theme(text=element_text(size=20))
 ggplot(subset(hw.results.q20.SPDIVA),aes(x=samplesize,y=x,group=vaccine.efficacy,col=vaccine.efficacy))+
   geom_smooth(size=1.2)+facet_grid(gold.standard~scenario)+
@@ -63,9 +91,8 @@ ggplot(subset(hw.results.q20.SPDIVA),aes(x=samplesize,y=x,group=vaccine.efficacy
 
 
 
-
 #### Sensitivity run
-session.id<-"2014062514"
+session.id<-"2014062613"
 file.names.full<-grep(session.id,dir(sim.dir,full.names=T),value=T)
 sp.results.list<-lapply(grep(session.id,dir(sim.dir,full.names=T),value=T),read.table,header=T)
 
