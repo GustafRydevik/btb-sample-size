@@ -45,7 +45,7 @@ sim.scenarios<-list(
 sample.size.range<-seq(30000,100000,by=10000)
 vacc.eff.range<-c(0.3,0.6,0.75)
 gold.scale.range<-c(1/10,1,5)
-current.seed<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
+current.time<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 sp.range<-seq(0.999,0.9999,by=0.0001)
 for(rep in 0:4){
   for(simvars in sim.scenarios){
@@ -71,7 +71,8 @@ for(rep in 0:4){
                  npos.gold=gold.scale*c(1/2,1/2)*300,
                  nneg.gold=gold.scale*c(1/2,1/2)*1000,
                  scenario.name=simvars$scenario.name,
-                 seed=current.seed
+                 time=current.time,
+                 seed=1000
           )
         }
       }
