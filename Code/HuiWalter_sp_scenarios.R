@@ -71,12 +71,8 @@ for(rep in 0:4){
                  npos.gold=gold.scale*c(1/2,1/2)*300,
                  nneg.gold=gold.scale*c(1/2,1/2)*1000,
                  scenario.name=simvars$scenario.name,
-<<<<<<< HEAD
                  time=current.time,
                  seed=1000
-=======
-                 time=current.time
->>>>>>> 92b453d7f9cc47a2b41edbcce63b399320487919
           )
         }
       }
