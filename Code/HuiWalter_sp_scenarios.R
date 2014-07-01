@@ -62,7 +62,7 @@ for(rep in 0:4){
                  props=simvars$props,
                  samplesize=Sample.size,
                  ##Controlling parameters here
-                 nreps=4,
+                 nreps=20,
                  rep.prefix=rep,
                  nchains=5,
                  niter=1000,
@@ -80,5 +80,5 @@ for(rep in 0:4){
     }
   }
 }
-  rbatch.local.run(8)
+  rbatch.local.run(4)
   

@@ -24,6 +24,9 @@ data.dir<-file.path(project.path,"Data")
 script.dir<-file.path(project.path,"Code")
 output.dir<-file.path(project.path,"Output")
 sim.dir<-file.path(project.path,"simulation-output")
+
+
+
 session.id<-"2014062023"
 hw.results.list<-lapply(grep(session.id,dir(sim.dir,full.names=T),value=T),read.table,header=T)
 hw.results.df<-do.call("rbind",hw.results.list)
@@ -92,7 +95,9 @@ ggplot(subset(hw.results.q20.SPDIVA),aes(x=samplesize,y=x,group=vaccine.efficacy
 
 
 #### Sensitivity run
-session.id<-"2014062613"
+session.id<-"2014063011"
+#session.id<-"2014070117"
+
 file.names.full<-grep(session.id,dir(sim.dir,full.names=T),value=T)
 sp.results.list<-lapply(grep(session.id,dir(sim.dir,full.names=T),value=T),read.table,header=T)
 
@@ -115,18 +120,18 @@ par.gs<-as.factor(paste(str_extract(grep(session.id,dir(sim.dir),value=T),"nposG
 
 levels(par.gs)<-c("1500+/5000- GS tests","30+/100- GS tests","300+/1000- GS tests")
 
-sp.results.list<-lapply(1:length(sp.results.list),function(x){
-  data.frame(sp.results.list[[x]],
-             samplesize=par.samplesize[x],
-             gold.standard=par.gs[x],
-             sp=par.sp[x])
-})
+# sp.results.list<-lapply(1:length(sp.results.list),function(x){
+#   data.frame(sp.results.list[[x]],
+#              samplesize=par.samplesize[x],
+#              gold.standard=par.gs[x],
+#              sp=par.sp[x])
+# })
 
 sp.results.df<-do.call("rbind",sp.results.list)
 
 ##adding run variables
 
-sp.results.q20<-aggregate(sp.results.df[,2],by=sp.results.df[,c("sp","gold.standard","samplesize","variable")],quantile,0.2)
+sp.results.q20<-aggregate(sp.results.df[,2],by=sp.results.df[,c("spDIVA.vacc","gold.standard","samplesize","variable")],quantile,0.2)
 sp.results.q20$samplesize<-as.numeric(as.character(sp.results.q20$samplesize))
 #sp.results.q20$samplesize<-factor(str_replace(as.character(sp.results.q20$samplesize),"([[:digit:]]{3}$)","k"))
 #sp.results.q20$samplesize<-factor(sp.results.q20$samplesize,levels(sp.results.q20$samplesize)[c(2:8,1)])
@@ -134,8 +139,25 @@ sp.results.q20$samplesize<-as.numeric(as.character(sp.results.q20$samplesize))
 
 my.theme<-theme_minimal()+theme(text=element_text(size=20))
 ggplot(subset(sp.results.q20,variable=="SpDIVA vaccine pop"),aes(x=samplesize,y=x,group=vaccine.efficacy))+
-  geom_smooth(size=1.5)+facet_grid(gold.standard~sp)+
+  geom_smooth(size=1.5,se=FALSE)+facet_grid(gold.standard~spDIVA.vacc)+
   geom_hline(yintercept=0.9985)+
   scale_y_continuous(labels = percent_format())+my.theme
 
+
+quantile.fun <- function(quantiles) {
+  function(x){
+  r <- quantile(x,probs=quantiles)
+  names(r) <- c("ymin", "lower", "middle", "upper", "ymax")
+  r
+}}
+
+
+sp.results.df$gold.standard<-factor(as.character(sp.results.df$gold.standard),
+                                    levels=levels(sp.results.df$gold.standard)[c(2,3,1)])
+ggplot(subset(sp.results.df,variable=="SpDIVA vaccine pop"),aes(x=as.factor(samplesize),vacc,y=mean))+
+  stat_summary(fun.data = quantile.fun(c(0,0.2,0.5,0.8,1)), geom = "boxplot") +
+  geom_smooth(se=FALSE,aes(group=1),size=1.5)+
+  facet_grid(gold.standard~spDIVA.vacc)+
+  geom_hline(yintercept=0.9985)+
+  scale_y_continuous(labels = percent_format())+my.theme
 

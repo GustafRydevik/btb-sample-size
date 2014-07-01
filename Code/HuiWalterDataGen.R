@@ -40,13 +40,13 @@ save.samples=T
 scenario.name<-"baseline"
 SeStd<-c(Vacc=0.7,nonVacc=0.7)
 SeDIVA<-c(Vacc=0.7,nonVacc=0.7)
-SpStd<-c(Vacc=0.9999,nonVacc=0.9999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
-SpDIVA<-c(Vacc=0.9999,nonVacc=0.9999)
+SpStd<-c(Vacc=0.999,nonVacc=0.999)  ## a specificity of 0.5 mirrors that it reacts to vaccinated animals
+SpDIVA<-c(Vacc=0.999,nonVacc=0.999)
 vaccine.efficacy<-0.6
 Prevalence<-c(High=6/100,Low=1/100)
-samplesize<-50000
+samplesize<-40000
 props<-c(1/4,1/4,1/4,1/4)# balance between populations High/vacc,Low/vacc,High/nonvacc,low/nonvacc
-gold.scale<-10
+gold.scale<-1/10
 npos.gold<-300*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 nneg.gold<-1000*c(Vacc=1/2,nonVacc=1/2)*gold.scale
 
@@ -84,6 +84,7 @@ btb.testdata$Vaccinated<-factor(btb.testdata$Vaccinated,levels=c("Vacc","nonVacc
 #Now run the following $reps times to generate multiple estimates
 
 set.seed(seed)
+sp.est<-vector(length=nreps)
 for(i in 1:nreps){
   
   #simulate some data
@@ -168,9 +169,8 @@ for(i in 1:nreps){
   posterior.intervals$samplesize<-samplesize
   posterior.intervals$spDIVA.vacc<-SpDIVA[1]
   posterior.intervals$gold.standard<-paste(sum(npos.gold),"+/",sum(nneg.gold),"-",collapse="",sep="")
-  
+  sp.est[i]<-posterior.intervals["SpDIVA vaccine pop","lower"]
   #print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
-  
   if(save.samples){jags.results[["jags.samples"]]<-huiwalter.samples
                    save(huiwalter.samples,file=paste(
                      sim.dir,"/HuiWalterSampleSize",
