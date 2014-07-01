@@ -195,5 +195,16 @@ for(i in 1:nreps){
     "_vaccEff",vaccine.efficacy,
     "_",rep.prefix,i,
     ".csv",sep=""))
+  dput(btb.testdata.agg,file=paste(
+    sim.dir,"/HuiWalterCI_Data",
+    "_time_",time,
+    "_sp",SpDIVA[1],
+    "_se",SeDIVA[1],
+    "_samplesize",sprintf("%d",samplesize),
+    "_nposGold",sum(npos.gold),
+    "_nnegGold",sum(nneg.gold),
+    "_vaccEff",vaccine.efficacy,
+    "_",rep.prefix,i,
+    ".txt",sep=""))
 }
 
