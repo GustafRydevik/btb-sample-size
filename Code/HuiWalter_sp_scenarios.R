@@ -47,12 +47,13 @@ vacc.eff.range<-c(0.3,0.6,0.75)
 gold.scale.range<-c(1/10,1,5)
 current.time<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 sp.range<-seq(0.999,0.9999,by=0.0001)
+current.seed<-1000
 for(rep in 0:4){
   for(simvars in sim.scenarios){
     for(SP in sp.range){
       for(gold.scale in gold.scale.range){
         for(Sample.size in sample.size.range){
-          rbatch(rfile=shQuote(file.path(script.dir,"HuiWalterDataGen.R")),
+          current.seed<-rbatch(rfile=shQuote(file.path(script.dir,"HuiWalterDataGen.R")),
                  SeStd=simvars$SeStd,
                  SeDIVA=simvars$SeDIVA,
                  SpStd=c(SP,SP),
@@ -72,7 +73,7 @@ for(rep in 0:4){
                  nneg.gold=gold.scale*c(1/2,1/2)*1000,
                  scenario.name=simvars$scenario.name,
                  time=current.time,
-                 seed=1000
+                 seed=current.seed
           )
         }
       }

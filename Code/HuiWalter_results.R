@@ -97,9 +97,12 @@ ggplot(subset(hw.results.q20.SPDIVA),aes(x=samplesize,y=x,group=vaccine.efficacy
 #### Sensitivity run
 session.id<-"2014063011"
 #session.id<-"2014070117"
+session.id<-"2014070122"
 
 file.names.full<-grep(session.id,dir(sim.dir,full.names=T),value=T)
-sp.results.list<-lapply(grep(session.id,dir(sim.dir,full.names=T),value=T),read.table,header=T)
+file.names.csv<-grep("csv",file.names.full,value=T)
+
+sp.results.list<-lapply(grep("csv",grep(session.id,dir(sim.dir,full.names=T),value=T),value=T),read.table,header=T)
 
 par.samplesize<-sprintf("%d",
         as.numeric(str_replace(str_extract(grep(session.id,dir(sim.dir),value=T),
@@ -154,7 +157,7 @@ quantile.fun <- function(quantiles) {
 
 sp.results.df$gold.standard<-factor(as.character(sp.results.df$gold.standard),
                                     levels=levels(sp.results.df$gold.standard)[c(2,3,1)])
-ggplot(subset(sp.results.df,variable=="SpDIVA vaccine pop"),aes(x=as.factor(samplesize),vacc,y=mean))+
+ggplot(subset(sp.results.df,variable=="SpDIVA vaccine pop"),aes(x=as.factor(samplesize),vacc,y=lower))+
   stat_summary(fun.data = quantile.fun(c(0,0.2,0.5,0.8,1)), geom = "boxplot") +
   geom_smooth(se=FALSE,aes(group=1),size=1.5)+
   facet_grid(gold.standard~spDIVA.vacc)+
