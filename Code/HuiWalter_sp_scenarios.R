@@ -48,7 +48,6 @@ gold.scale.range<-c(1/10,1,5)
 current.time<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 sp.range<-seq(0.999,0.9999,by=0.0001)
 current.seed<-1000
-for(rep in 0:4){
   for(simvars in sim.scenarios){
     for(SP in sp.range){
       for(gold.scale in gold.scale.range){
@@ -63,8 +62,7 @@ for(rep in 0:4){
                  props=simvars$props,
                  samplesize=Sample.size,
                  ##Controlling parameters here
-                 nreps=20,
-                 rep.prefix=rep,
+                 nreps=1,
                  nchains=5,
                  niter=1000,
                  n.mcmc.samples=1000,
@@ -80,6 +78,5 @@ for(rep in 0:4){
       
     }
   }
-}
   rbatch.local.run(4)
   

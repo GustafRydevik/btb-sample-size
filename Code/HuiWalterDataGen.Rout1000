@@ -99,13 +99,10 @@ $props
 [1] 0.25 0.25 0.25 0.25
 
 $samplesize
-[1] 1e+05
+[1] 30000
 
 $nreps
-[1] 20
-
-$rep.prefix
-[1] 4
+[1] 1
 
 $nchains
 [1] 5
@@ -129,7 +126,7 @@ $scenario.name
 [1] "baseline"
 
 $time
-[1] 2014070120
+[1] 2014070316
 
 > 
 > names(SeStd)<-c("Vacc","nonVacc")
@@ -161,6 +158,7 @@ $time
 > 
 > set.seed(seed)
 > sp.est<-vector(length=nreps)
+> posterior.intervals.all<-data.frame()
 > for(i in 1:nreps){
 +   
 +   #simulate some data
@@ -245,32 +243,9 @@ $time
 +   posterior.intervals$samplesize<-samplesize
 +   posterior.intervals$spDIVA.vacc<-SpDIVA[1]
 +   posterior.intervals$gold.standard<-paste(sum(npos.gold),"+/",sum(nneg.gold),"-",collapse="",sep="")
-+   sp.est[i]<-posterior.intervals["SpDIVA vaccine pop","lower"]
++   posterior.intervals$iteration<-i
++   posterior.intervals.all<-rbind(posterior.intervals.all,posterior.intervals)
 +   #print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
-+   if(save.samples){jags.results[["jags.samples"]]<-huiwalter.samples
-+                    save(huiwalter.samples,file=paste(
-+                      sim.dir,"/HuiWalterSampleSize",
-+                      "_time_",time,
-+                      "_sp",SpDIVA[1],
-+                      "_se",SeDIVA[1],
-+                      "_samplesize",sprintf("%d",samplesize),
-+                      "_nposGold",sum(npos.gold),
-+                      "_nnegGold",sum(nneg.gold),
-+                      "_vaccEff",vaccine.efficacy,
-+                      "_",rep.prefix,i,
-+                      ".RData",sep=""))
-+   }
-+   write.table(posterior.intervals,file=paste(
-+     sim.dir,"/HuiWalterCI",
-+     "_time_",time,
-+     "_sp",SpDIVA[1],
-+     "_se",SeDIVA[1],
-+     "_samplesize",sprintf("%d",samplesize),
-+     "_nposGold",sum(npos.gold),
-+     "_nnegGold",sum(nneg.gold),
-+     "_vaccEff",vaccine.efficacy,
-+     "_",rep.prefix,i,
-+     ".csv",sep=""))
 + }
 Compiling model graph
    Resolving undeclared variables
@@ -279,138 +254,18 @@ Compiling model graph
 
 Initializing model
 
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 145
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 142
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 142
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 150
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 142
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 145
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 142
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 146
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 142
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 145
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 151
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 145
-
-Initializing model
-
-Compiling model graph
-   Resolving undeclared variables
-   Allocating nodes
-   Graph Size: 148
-
-Initializing model
-
+> 
+>   write.table(posterior.intervals.all,file=paste(
++     sim.dir,"/HuiWalterCI",
++     "_time_",time,
++     "_sp",SpDIVA[1],
++     "_se",SeDIVA[1],
++     "_samplesize",sprintf("%d",samplesize),
++     "_nposGold",sum(npos.gold),
++     "_nnegGold",sum(nneg.gold),
++     "_vaccEff",vaccine.efficacy,
++     ".csv",sep=""))
+> 
+> 
 > 
 > 

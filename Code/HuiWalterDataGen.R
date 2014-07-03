@@ -85,6 +85,7 @@ btb.testdata$Vaccinated<-factor(btb.testdata$Vaccinated,levels=c("Vacc","nonVacc
 
 set.seed(seed)
 sp.est<-vector(length=nreps)
+posterior.intervals.all<-data.frame()
 for(i in 1:nreps){
   
   #simulate some data
@@ -169,22 +170,12 @@ for(i in 1:nreps){
   posterior.intervals$samplesize<-samplesize
   posterior.intervals$spDIVA.vacc<-SpDIVA[1]
   posterior.intervals$gold.standard<-paste(sum(npos.gold),"+/",sum(nneg.gold),"-",collapse="",sep="")
-  sp.est[i]<-posterior.intervals["SpDIVA vaccine pop","lower"]
+  posterior.intervals$iteration<-i
+  posterior.intervals.all<-rbind(posterior.intervals.all,posterior.intervals)
   #print(xtable(posterior.intervals,digits=4),type="html",file= "PosteriorIntervals.html")
-  if(save.samples){jags.results[["jags.samples"]]<-huiwalter.samples
-                   save(huiwalter.samples,file=paste(
-                     sim.dir,"/HuiWalterSampleSize",
-                     "_time_",time,
-                     "_sp",SpDIVA[1],
-                     "_se",SeDIVA[1],
-                     "_samplesize",sprintf("%d",samplesize),
-                     "_nposGold",sum(npos.gold),
-                     "_nnegGold",sum(nneg.gold),
-                     "_vaccEff",vaccine.efficacy,
-                     "_",rep.prefix,i,
-                     ".RData",sep=""))
-  }
-  write.table(posterior.intervals,file=paste(
+}
+
+  write.table(posterior.intervals.all,file=paste(
     sim.dir,"/HuiWalterCI",
     "_time_",time,
     "_sp",SpDIVA[1],
@@ -193,18 +184,7 @@ for(i in 1:nreps){
     "_nposGold",sum(npos.gold),
     "_nnegGold",sum(nneg.gold),
     "_vaccEff",vaccine.efficacy,
-    "_",rep.prefix,i,
     ".csv",sep=""))
-  dput(btb.testdata.agg,file=paste(
-    sim.dir,"/HuiWalterCI_Data",
-    "_time_",time,
-    "_sp",SpDIVA[1],
-    "_se",SeDIVA[1],
-    "_samplesize",sprintf("%d",samplesize),
-    "_nposGold",sum(npos.gold),
-    "_nnegGold",sum(nneg.gold),
-    "_vaccEff",vaccine.efficacy,
-    "_",rep.prefix,i,
-    ".txt",sep=""))
-}
+
+
 
