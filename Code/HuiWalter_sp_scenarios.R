@@ -48,6 +48,10 @@ gold.scale.range<-c(1/10,1,5)
 current.time<-as.integer(as.numeric(format(Sys.time(),"%Y%m%d%H")))
 sp.range<-seq(0.999,0.9999,by=0.0001)
 current.seed<-1000
+nreps<-100
+##Or read in parameters from a batch call
+parseCommandArgs()  ## To change the number of repetitions
+
   for(simvars in sim.scenarios){
     for(SP in sp.range){
       for(gold.scale in gold.scale.range){
@@ -62,7 +66,7 @@ current.seed<-1000
                  props=simvars$props,
                  samplesize=Sample.size,
                  ##Controlling parameters here
-                 nreps=100,
+                 nreps=nreps,
                  nchains=5,
                  niter=1000,
                  n.mcmc.samples=1000,
