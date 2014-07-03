@@ -62,7 +62,7 @@ current.seed<-1000
                  props=simvars$props,
                  samplesize=Sample.size,
                  ##Controlling parameters here
-                 nreps=1,
+                 nreps=100,
                  nchains=5,
                  niter=1000,
                  n.mcmc.samples=1000,
