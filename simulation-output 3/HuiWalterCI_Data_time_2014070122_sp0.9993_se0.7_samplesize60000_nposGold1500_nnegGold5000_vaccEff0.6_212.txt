@@ -1,5 +1,0 @@
-structure(c(14522L, 14916L, 14159L, 14842L, 110L, 27L, 210L, 
-36L, 115L, 21L, 190L, 38L, 253L, 36L, 441L, 84L), .Dim = c(2L, 
-2L, 4L), .Dimnames = structure(list(Pop = c("High", "Low"), Vaccinated = c("Vacc", 
-"nonVacc"), Std.vs.DIVA = c("--", "+-", "-+", "++")), .Names = c("Pop", 
-"Vaccinated", "Std.vs.DIVA")))
