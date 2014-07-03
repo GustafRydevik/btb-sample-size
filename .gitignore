@@ -5,3 +5,4 @@ simulation-output/*
 simulation-output/*
 simulation-output\ 3/*
 simulation-output 3/*
+*.out

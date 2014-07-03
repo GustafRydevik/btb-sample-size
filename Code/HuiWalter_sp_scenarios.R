@@ -82,5 +82,5 @@ parseCommandArgs()  ## To change the number of repetitions
       
     }
   }
-  rbatch.local.run(4)
+  rbatch.local.run(8)
   
